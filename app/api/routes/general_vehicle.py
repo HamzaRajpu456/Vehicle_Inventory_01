@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.models.general_vehicle_model import General_Vehicles
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 from app.core.db import get_db_session
 from app.schemas.schema import Create_Vehicles_Schema
 from uuid import UUID
 from app.models.engine import Engine
-
+from app.utills import convert_to_dict
 
 
 general_vehicle_router = APIRouter(prefix = "/vehicles", tags = ["Vehicles"])
@@ -40,7 +41,7 @@ async def create_vehicle(
         
         engine_data = {
             "engine_no": vehicles_data["engine_no"],
-            "enigne_type": vehicles_data ["enigne_type"],
+            "engine_type": vehicles_data ["engine_type"],
             "displacement" : vehicles_data ["displacement"],
             "horse_power" : vehicles_data [ "horse_power"],
             "fuel_efficiency": vehicles_data ["fuel_efficiency"],
@@ -53,7 +54,7 @@ async def create_vehicle(
         data = General_Vehicles(**general_data)
         session.add(data)
         session.commit()
-        general_vehicle_data = session.refresh(data)  # Refresh the vehicle data
+        session.refresh(data)  # Refresh the vehicle data
         
         # Add vehicle_id to engine_data
         engine_data["vehicle_id"] = data.id
@@ -64,15 +65,24 @@ async def create_vehicle(
         session.commit()
         session.refresh(engines_data)  # Refresh the engine data
 
+        statement = select(General_Vehicles, Engine).where(data.id == engines_data.vehicle_id)
+        results = session.exec(statement)
+
+        veh_data = [
+            (vehicle, engine)  
+            for vehicle, engine in results]
+        
+        veh_data_with_engine = convert_to_dict(veh_data)
+
+        print(veh_data_with_engine)
+
         # Return both refreshed objects in the response
         return {
             "status": True,
             "message": "Vehicle and engine created successfully",
-            "data": {
-                "vehicle": general_vehicle_data,  # Refresh the vehicle data
-                "engine": engines_data
-            }
-        }
+            "data" : veh_data_with_engine}
+
+
 
     # Exception Handling
     except Exception as e:

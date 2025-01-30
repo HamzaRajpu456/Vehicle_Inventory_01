@@ -14,7 +14,7 @@ class Create_Vehicles_Schema(SQLModel):
     price : float 
 # Engine's Schema :
     engine_no :str
-    enigne_type : str
+    engine_type : str
     displacement : str
     horse_power : str
     fuel_efficiency : str
