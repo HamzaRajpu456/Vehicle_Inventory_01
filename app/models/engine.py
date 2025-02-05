@@ -7,7 +7,7 @@
 
 #  delete all tables in pgadmin but before del table must close program
 #  run porgram again and then research 
-# 1 :  how to get the join tables data from dtaabase table from join funtion 
+# 1 :  
 # 2: convert data into python lists of tuples 
 # 3: then use list comprehensions to convert tuple insides above list into python dict having related tables data 
 
